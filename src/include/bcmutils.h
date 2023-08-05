@@ -21,6 +21,8 @@
 #ifndef	_bcmutils_h_
 #define	_bcmutils_h_
 
+#include <linux/version.h>
+
 #define bcm_strcpy_s(dst, noOfElements, src)            strcpy((dst), (src))
 #define bcm_strncpy_s(dst, noOfElements, src, count)    strncpy((dst), (src), (count))
 #define bcm_strcat_s(dst, noOfElements, src)            strcat((dst), (src))
@@ -558,7 +560,11 @@ typedef struct bcm_bit_desc_ex {
 typedef struct bcm_tlv {
 	uint8	id;
 	uint8	len;
-	uint8	data[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	uint8	data[];
+#else
+ 	uint8	data[1];
+#endif
 } bcm_tlv_t;
 
 #define bcm_valid_tlv(elt, buflen) ((buflen) >= 2 && (int)(buflen) >= (int)(2 + (elt)->len))

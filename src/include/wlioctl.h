@@ -24,6 +24,7 @@
 #ifndef _wlioctl_h_
 #define	_wlioctl_h_
 
+#include <linux/version.h>
 #include <typedefs.h>
 #include <proto/ethernet.h>
 #include <proto/bcmeth.h>
@@ -91,7 +92,11 @@ typedef struct wl_scan_results {
 	uint32 buflen;
 	uint32 version;
 	uint32 count;
-	wl_bss_info_t bss_info[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	wl_bss_info_t bss_info[];
+#else
+ 	wl_bss_info_t bss_info[1];
+#endif
 } wl_scan_results_t;
 
 #define WL_MAXRATES_IN_SET		16	
@@ -129,7 +134,11 @@ typedef struct wl_uint32_list {
 
 	uint32 count;
 
-	uint32 element[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	uint32 element[];
+#else
+ 	uint32 element[1];
+#endif
 } wl_uint32_list_t;
 
 typedef struct wl_assoc_params {
@@ -247,7 +256,11 @@ typedef struct _pmkid {
 
 typedef struct _pmkid_list {
 	uint32	npmkid;
-	pmkid_t	pmkid[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	pmkid_t	pmkid[];
+#else
+ 	pmkid_t	pmkid[1];
+#endif
 } pmkid_list_t;
 
 typedef struct _pmkid_cand {
@@ -257,7 +270,11 @@ typedef struct _pmkid_cand {
 
 typedef struct _pmkid_cand_list {
 	uint32	npmkid_cand;
-	pmkid_cand_t	pmkid_cand[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	pmkid_cand_t	pmkid_cand[];
+#else
+ 	pmkid_cand_t	pmkid_cand[1];
+#endif
 } pmkid_cand_list_t;
 
 typedef struct {
@@ -278,7 +295,11 @@ typedef struct channel_info {
 
 struct maclist {
 	uint count;			
-	struct ether_addr ea[1];	
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	struct ether_addr ea[];
+#else
+ 	struct ether_addr ea[1];
+#endif
 };
 
 typedef struct wl_ioctl {

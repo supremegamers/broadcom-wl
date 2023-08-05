@@ -27,6 +27,7 @@
 #define IEEE80211_BAND_5GHZ NL80211_BAND_5GHZ
 #endif
 
+#include <linux/version.h>
 #include <net/cfg80211.h>
 #include <wlioctl.h>
 
@@ -108,7 +109,11 @@ struct beacon_proberesp {
 	__le64 timestamp;
 	__le16 beacon_int;
 	__le16 capab_info;
-	u8 variable[0];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	u8 variable[];
+#else
+ 	u8 variable[0];
+#endif
 } __attribute__ ((packed));
 
 struct wl_cfg80211_conf {
@@ -131,7 +136,11 @@ struct wl_cfg80211_bss_info {
 	u16 channel;
 	s16 rssi;
 	u16 frame_len;
-	u8 frame_buf[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	u8 frame_buf[];
+#else
+ 	u8 frame_buf[1];
+#endif
 };
 
 struct wl_cfg80211_scan_req {
@@ -147,7 +156,11 @@ struct wl_cfg80211_event_q {
 	struct list_head eq_list;
 	u32 etype;
 	wl_event_msg_t emsg;
-	s8 edata[1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	s8 edata[];
+#else
+ 	s8 edata[1];
+#endif
 };
 
 struct wl_cfg80211_security {
@@ -179,7 +192,11 @@ struct wl_cfg80211_assoc_ielen {
 
 struct wl_cfg80211_pmk_list {
 	pmkid_list_t pmkids;
-	pmkid_t foo[MAXPMKID - 1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	pmkid_t foo[MAXPMKID];
+#else
+ 	pmkid_t foo[MAXPMKID - 1];
+#endif
 };
 
 struct wl_cfg80211_priv {

@@ -1903,7 +1903,11 @@ wl_iw_set_encodeext(
 #if WIRELESS_EXT > 17
 struct {
 	pmkid_list_t pmkids;
-	pmkid_t foo[MAXPMKID-1];
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	pmkid_t foo[MAXPMKID];
+#else
+ 	pmkid_t foo[MAXPMKID-1];
+#endif
 } pmkid_list;
 static int
 wl_iw_set_pmksa(
@@ -1926,7 +1930,11 @@ wl_iw_set_pmksa(
 		bzero((char *)&pmkid_list, sizeof(pmkid_list));
 	}
 	if (iwpmksa->cmd == IW_PMKSA_REMOVE) {
-		pmkid_list_t pmkid, *pmkidptr;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+		struct { pmkid_t pmkid[1]; } pmkid, *pmkidptr;
+#else
+ 		pmkid_list_t pmkid, *pmkidptr;
+#endif
 		pmkidptr = &pmkid;
 		bcopy(&iwpmksa->bssid.sa_data[0], &pmkidptr->pmkid[0].BSSID, ETHER_ADDR_LEN);
 		bcopy(&iwpmksa->pmkid[0], &pmkidptr->pmkid[0].PMKID, WPA2_PMKID_LEN);

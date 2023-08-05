@@ -1603,7 +1603,11 @@ wl_cfg80211_del_pmksa(struct wiphy *wiphy, struct net_device *dev,
                       struct cfg80211_pmksa *pmksa)
 {
 	struct wl_cfg80211_priv *wl = wiphy_to_wl(wiphy);
-	struct _pmkid_list pmkid;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	struct { pmkid_t pmkid[1]; } pmkid;
+#else
+ 	struct _pmkid_list pmkid;
+#endif
 	s32 err = 0;
 	int i;
 
@@ -2063,8 +2067,13 @@ static s32 wl_inform_single_bss(struct wl_cfg80211_priv *wl, struct wl_bss_info 
 		WL_DBG(("Beacon is larger than buffer. Discarding\n"));
 		return -E2BIG;
 	}
-	notif_bss_info = kzalloc(sizeof(*notif_bss_info) + sizeof(*mgmt) - sizeof(u8) +
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+	notif_bss_info = kzalloc(sizeof(*notif_bss_info) + sizeof(*mgmt) +
 	                         WL_BSS_INFO_MAX, GFP_KERNEL);
+#else
+ 	notif_bss_info = kzalloc(sizeof(*notif_bss_info) + sizeof(*mgmt) - sizeof(u8) +
+	                         WL_BSS_INFO_MAX, GFP_KERNEL);
+#endif
 	if (!notif_bss_info) {
 		WL_ERR(("notif_bss_info alloc failed\n"));
 		return -ENOMEM;

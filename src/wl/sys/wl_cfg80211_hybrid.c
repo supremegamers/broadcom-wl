@@ -1955,6 +1955,13 @@ static s32 wl_alloc_wdev(struct device *dev, struct wireless_dev **rwdev)
 	}
 	set_wiphy_dev(wdev->wiphy, dev);
 	wdev->wiphy->max_scan_ssids = WL_NUM_SCAN_MAX;
+
+	/* Set max_scan_ie_len to a random value in order to make wpa_supplicant
+	 * scans not to fail. The driver should ignore the extra passed IEs.
+	 * Value taken and fix inspired from:
+	 * https://patchwork.kernel.org/project/linux-wireless/patch/20211212221310.5453-1-merlijn@wizzup.org/
+	 */
+	wdev->wiphy->max_scan_ie_len = 512;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
 	wdev->wiphy->max_num_pmkids = WL_NUM_PMKIDS_MAX;
 #endif

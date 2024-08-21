@@ -1098,8 +1098,9 @@ wl_open(struct net_device *dev)
 	}
 	WL_UNLOCK(wl);
 
-	if (!error)
+	if (!error) {
 		OLD_MOD_INC_USE_COUNT;
+	}
 
 #if defined(USE_CFG80211)
 	if (wl_cfg80211_up(dev)) {
@@ -1868,9 +1869,10 @@ wl_set_mac_address(struct net_device *dev, void *addr)
 	err = wlc_iovar_op(wl->wlc, "cur_etheraddr", NULL, 0, sa->sa_data, ETHER_ADDR_LEN,
 		IOV_SET, (WL_DEV_IF(dev))->wlcif);
 	WL_UNLOCK(wl);
-	if (err)
+	if (err) {
 		WL_ERROR(("wl%d: wl_set_mac_address: error setting MAC addr override\n",
 			wl->pub->unit));
+	}
 	return err;
 }
 
@@ -2257,9 +2259,10 @@ wl_start(struct sk_buff *skb, struct net_device *dev)
 			if (!err) {
 				atomic_inc(&wl->callbacks);
 				wl->txq_dispatched = TRUE;
-			} else
+			} else {
 				WL_ERROR(("wl%d: wl_start/schedule_work failed\n",
 				          wl->pub->unit));
+			}
 		}
 
 		TXQ_UNLOCK(wl);

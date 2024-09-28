@@ -507,6 +507,10 @@ wl_cfg80211_change_iface(struct wiphy *wiphy, struct net_device *ndev,
 	switch (type) {
 	case NL80211_IFTYPE_MONITOR:
 	case NL80211_IFTYPE_WDS:
+	case NL80211_IFTYPE_MESH_POINT:
+	case NL80211_IFTYPE_P2P_DEVICE:
+	case NL80211_IFTYPE_P2P_CLIENT:
+	case NL80211_IFTYPE_P2P_GO:
 		WL_ERR(("type (%d) : currently we do not support this type\n",
 			type));
 		return -EOPNOTSUPP;
@@ -516,6 +520,10 @@ wl_cfg80211_change_iface(struct wiphy *wiphy, struct net_device *ndev,
 	case NL80211_IFTYPE_STATION:
 		wl->conf->mode = WL_MODE_BSS;
 		infra = 1;
+		break;
+	case NL80211_IFTYPE_AP:
+		wl->conf->mode = WL_MODE_AP;
+		ap = 1;
 		break;
 	default:
 		return -EINVAL;
@@ -1879,12 +1887,54 @@ static s32 wl_mode_to_nl80211_iftype(s32 mode)
 		return NL80211_IFTYPE_STATION;
 	case WL_MODE_IBSS:
 		return NL80211_IFTYPE_ADHOC;
+	case WL_MODE_AP:
+		return NL80211_IFTYPE_AP;
 	default:
 		return NL80211_IFTYPE_UNSPECIFIED;
 	}
 
 	return err;
 }
+
+static const struct ieee80211_txrx_stypes
+wl_txrx_stypes[NUM_NL80211_IFTYPES] = {
+	[NL80211_IFTYPE_STATION] = {
+		.tx = 0xffff,
+		.rx = BIT(IEEE80211_STYPE_ACTION >> 4) |
+		      BIT(IEEE80211_STYPE_PROBE_REQ >> 4)
+	},
+	[NL80211_IFTYPE_AP] = {
+		.tx = 0xffff,
+		.rx = BIT(IEEE80211_STYPE_ASSOC_REQ >> 4) |
+		      BIT(IEEE80211_STYPE_REASSOC_REQ >> 4) |
+		      BIT(IEEE80211_STYPE_PROBE_REQ >> 4) |
+		      BIT(IEEE80211_STYPE_DISASSOC >> 4) |
+		      BIT(IEEE80211_STYPE_AUTH >> 4) |
+		      BIT(IEEE80211_STYPE_DEAUTH >> 4) |
+		      BIT(IEEE80211_STYPE_ACTION >> 4)
+	}
+};
+
+static const struct ieee80211_iface_limit wl_limits[] = {
+	{
+		.max = 1,
+		.types = BIT(NL80211_IFTYPE_STATION),
+	},
+	{
+		.max = 1, 
+		.types = BIT(NL80211_IFTYPE_AP),
+	},
+};
+
+static const struct ieee80211_iface_combination wl_combination [] = {
+	{
+		.limits = wl_limits,
+		.n_limits = ARRAY_SIZE(wl_limits),
+		.max_interfaces = 2,
+		.num_different_channels = 1,
+		.beacon_int_infra_match = true,
+	},
+};
 
 static s32 wl_alloc_wdev(struct device *dev, struct wireless_dev **rwdev)
 {
@@ -1908,7 +1958,10 @@ static s32 wl_alloc_wdev(struct device *dev, struct wireless_dev **rwdev)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
 	wdev->wiphy->max_num_pmkids = WL_NUM_PMKIDS_MAX;
 #endif
-	wdev->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) | BIT(NL80211_IFTYPE_ADHOC);
+	wdev->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) | BIT(NL80211_IFTYPE_ADHOC) | BIT(NL80211_IFTYPE_AP);
+	wdev->wiphy->iface_combinations = wl_combination;
+	wdev->wiphy->n_iface_combinations = ARRAY_SIZE(wl_combination);
+	wdev->wiphy->mgmt_stypes = wl_txrx_stypes;
 	wdev->wiphy->bands[IEEE80211_BAND_2GHZ] = &__wl_band_2ghz;
 	wdev->wiphy->bands[IEEE80211_BAND_5GHZ] = &__wl_band_5ghz_a; 
 	wdev->wiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
@@ -2908,14 +2961,21 @@ static s32 wl_set_mode(struct net_device *ndev, s32 iftype)
 	switch (iftype) {
 	case NL80211_IFTYPE_MONITOR:
 	case NL80211_IFTYPE_WDS:
+	case NL80211_IFTYPE_MESH_POINT:
+	case NL80211_IFTYPE_P2P_DEVICE:
+	case NL80211_IFTYPE_P2P_CLIENT:
+	case NL80211_IFTYPE_P2P_GO:
 		WL_ERR(("type (%d) : currently we do not support this mode\n",
 			iftype));
-		err = -EINVAL;
+		err = -EOPNOTSUPP;
 		return err;
 	case NL80211_IFTYPE_ADHOC:
 		break;
 	case NL80211_IFTYPE_STATION:
 		infra = 1;
+		break;
+	case NL80211_IFTYPE_AP:
+		ap = 1;
 		break;
 	default:
 		err = -EINVAL;

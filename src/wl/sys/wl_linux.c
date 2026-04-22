@@ -169,6 +169,7 @@ static void wl_report_radio_state(wl_info_t *wl);
 // Rel. commit "modpost: require a MODULE_DESCRIPTION()" (Jeff Johnson, 11 Mar 2025)
 MODULE_DESCRIPTION("Broadcom-wl wireless driver [unmaintained, out-of-tree]");
 MODULE_LICENSE("MIXED/Proprietary");
+MODULE_IMPORT_NS("ANDROID_GKI_VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver");
 
 static struct pci_device_id wl_id_table[] =
 {
